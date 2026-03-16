@@ -1,0 +1,45 @@
+@startuml
+!theme cerulean-outline
+skinparam componentStyle uml2
+
+title Hệ Thống IoT Tưới Vườn Thông Minh (M5Stack + Golang + React PWA)
+
+package "Vườn Cây (Edge Layer)" {
+    [M5Stack Core2] as Core
+    [Earth Unit (Cảm biến)] as Sensor
+    [Relay Unit] as Relay
+    [Van Điện Từ 12V] as Valve
+    
+    Sensor -right-> Core : I2C/Grove
+    Core -down-> Relay : GPIO/Grove
+    Relay -down-> Valve : Đóng/Ngắt nguồn 12V
+}
+
+cloud "Tầng Trung Gian (Cloud/Connectivity)" {
+    queue "MQTT Broker\n(Mosquitto/HiveMQ)" as MQTT
+}
+
+package "Hệ Thống Backend (Golang Service)" {
+    [Echo API Server] as Echo
+    [MQTT Client] as GoMQTT
+    [Cron Scheduler] as Scheduler
+    database "PostgreSQL\n(Supabase)" as DB
+}
+
+package "Giao Diện Người Dùng (Frontend)" {
+    [React PWA (Mobile)] as ReactApp
+    [Firebase Cloud Messaging] as FCM
+}
+
+' Kết nối các thành phần
+Core <.down.> MQTT : Wi-Fi (Pub/Sub)
+MQTT <.down.> GoMQTT : Pub/Sub
+GoMQTT -down-> DB : Lưu dữ liệu
+Scheduler -up-> DB : Kiểm tra lịch
+Scheduler -left-> GoMQTT : Kích hoạt tưới
+Echo -left-> DB : CRUD Lịch trình
+ReactApp -up-> Echo : REST API
+Echo -down-> FCM : Gửi cảnh báo
+FCM -.down.> ReactApp : Push Notification
+
+@enduml
