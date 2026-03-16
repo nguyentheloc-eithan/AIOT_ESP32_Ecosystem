@@ -1,0 +1,45 @@
+@startuml
+!theme spacelab
+skinparam backgroundcolor white
+
+rectangle "Hộp Điều Khiển Trung Tâm (Hộp nhựa chống nước)" as MainBox {
+    rectangle "Mặt Trên (Nắp Hộp)" as TopCover {
+        [M5Stack Core2] as Core
+    }
+    
+    rectangle "Bên Trong (Đáy Hộp)" as Interior {
+        [Nguồn 12V 5A] as PowerSupply
+        [Mạch Hạ Áp LM2596] as BuckConverter
+        [Relay Unit] as Relay
+        [Giắc AC (220V Vào)] as ACInput
+        [Giắc 12V (Van Ra)] as ValveOutput
+        [Giắc Grove (Cảm Biến)] as SensorInput
+    }
+}
+
+' Bố trí linh kiện (logic)
+Core -[hidden]- PowerSupply
+PowerSupply -[hidden]- BuckConverter
+BuckConverter -[hidden]- Relay
+
+' Kết nối nguồn
+ACInput ==> PowerSupply : 220V AC
+PowerSupply == BuckConverter : 12V DC
+PowerSupply ==> Relay : 12V DC (Nguồn cho Van)
+BuckConverter ==> Core : 5V DC (Cổng USB-C/Cáp Grove)
+
+' Kết nối điều khiển
+Core --> Relay : Cáp Grove
+
+' Kết nối đầu ra (mặt hông)
+Relay -right-> ValveOutput : Lệnh đóng/mở van
+Core -right-> SensorInput : Cáp Grove (dữ liệu cảm biến)
+
+' Chú thích:
+'   == : Dây nguồn
+'   -> : Cáp tín hiệu
+' M5Stack Core2 sẽ được gắn đè lên nắp hộp, 
+' các linh kiện khác gắn cố định vào đáy hộp.
+' Dây nguồn cho M5Stack được luồn từ bên trong.
+
+@enduml
