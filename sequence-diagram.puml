@@ -1,0 +1,29 @@
+@startuml
+!theme materia
+autonumber
+
+actor "Ba của bạn" as User
+participant "React PWA" as App
+participant "Golang Backend" as Server
+participant "MQTT Broker" as MQTT
+participant "M5Stack Core2" as M5
+participant "Vườn Cây" as Garden
+
+== Quá trình giám sát ==
+Garden -> M5: Độ ẩm thấp (< 15%)
+M5 -> MQTT: Publish: { moisture: 15 } (topic: sensor/data)
+MQTT -> Server: Nhận dữ liệu độ ẩm
+Server -> Server: Kiểm tra ngưỡng cảnh báo
+Server -> App: Push Notification: "Đất đang rất khô!"
+
+== Quá trình điều khiển thủ công ==
+User -> App: Nhấn nút "Tưới Cây"
+App -> Server: API Request: /api/pump/on
+Server -> MQTT: Publish: "ON" (topic: action/pump)
+MQTT -> M5: Nhận lệnh "ON"
+M5 -> Garden: Kích hoạt Relay mở Van nước
+M5 -> MQTT: Confirm: { status: "Running" }
+MQTT -> Server: Cập nhật trạng thái
+Server -> App: Hiển thị: "Đang tưới..."
+
+@enduml
