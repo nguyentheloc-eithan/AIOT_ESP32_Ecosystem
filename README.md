@@ -1,105 +1,370 @@
-# TÀI LIỆU DỰ ÁN: HỆ THỐNG IOT TƯỚI VƯỜN THÔNG MINH (SMART GARDEN)
+# AIOT ESP32 Ecosystem
 
-## 1. Mục tiêu dự án
-
-Xây dựng hệ thống điều khiển tưới tiêu cho vườn cây thông qua giao diện Web PWA (React), backend (Golang) và phần cứng (M5Stack).
-
-* **Stage 1:** Tập trung vào quản lý lịch trình, điều khiển từ xa và hệ thống thông báo dựa trên dữ liệu cảm biến.
-
-## 2. Danh mục linh kiện & Ngân sách dự kiến
-
-| Linh kiện | Số lượng | Link hình ảnh & Kích thước | Giá (VND) | Ghi chú |
-| --- | --- | --- | --- | --- |
-| **M5Stack Core2** | 01 | [M5Stack Core2 (54x54x16mm)](https://shop.m5stack.com/products/m5stack-core2-esp32-iot-development-kit) | 1.250.000 | Bộ điều khiển, màn hình hiển thị. |
-| **Earth Unit** | 02 | [Cảm biến độ ẩm (71x24mm)](https://www.google.com/search?q=https://shop.m5stack.com/products/earth-unit) | 240.000 | Loại điện dung, chống ăn mòn. |
-| **Relay Unit** | 01 | [Relay (48x24x10mm)](https://www.google.com/search?q=https://shop.m5stack.com/products/mini-relay-unit-ca-9v) | 150.000 | Kích van điện từ. |
-| **Van điện từ 12V** | 01 | [Solenoid Valve (Phi 21)](https://www.google.com/search?q=solenoid+valve+12v+phi+21) | 250.000 | Khóa/mở nước cơ khí. |
-| **Nguồn tổ ong** | 01 | [Nguồn 12V 5A](https://www.google.com/search?q=nguồn+tổ+ong+12V+5A) | 110.000 | Cấp điện toàn hệ thống. |
-| **Hộp chống nước** | 01 | [Hộp nhựa dự án](https://www.google.com/search?q=hộp+nhựa+chống+nước+dự+án+điện) | 150.000 | Đóng gói tất cả trong một. |
-| **Phụ kiện khác** | - | Mạch hạ áp, dây Grove, dây điện. | 200.000 | Kết nối và bảo vệ. |
-| **TỔNG CỘNG** |  |  | **~2.350.000** |  |
+**Project Codename:** AIOT_ESP32_Ecosystem  
+**Version:** 1.0 — Full Vision  
+**Last Updated:** March 24, 2026  
+**Author:** Eithan Nguyen The Loc
 
 ---
 
-## 3. Chức năng chi tiết (Stage 1)
+## Quick Start
 
-### 3.1. Quản lý lịch tưới (Scheduling)
+```bash
+# 1. Start infrastructure (MQTT + PocketBase)
+cd core/infra/docker
+docker-compose up -d
 
-* Cho phép ba bạn cài đặt các khung giờ cố định (ví dụ: 06:00 và 18:00).
-* Thiết lập thời gian tưới cho mỗi lần (ví dụ: tưới trong 5 phút).
-* Dữ liệu lịch trình được lưu trữ tập trung trên **Supabase/PostgreSQL** để đảm bảo không bị mất khi mất điện.
+# 2. Start backend
+cd core/backend
+go run main.go
 
-### 3.2. Điều khiển thủ công (Manual Override)
+# 3. Start frontend
+cd core/frontend
+npm install && npm run dev
+```
 
-* Giao diện Web có nút Gạt (Toggle) hoặc Nút bấm (Button) lớn để bật/tắt máy bơm tức thì.
-* Trạng thái bơm được đồng bộ hóa theo thời gian thực (Nếu bấm trên Web, màn hình M5Stack cũng thay đổi trạng thái).
+**Documentation:** See [Getting Started Guide](docs/getting-started.md) for detailed setup.
 
-### 3.3. Cảnh báo thông minh (Smart Notification)
+**Technologies:**
 
-* **Logic:** Nếu `Moisture < 20%` (ngưỡng khô) và hiện tại `không nằm trong lịch tưới`.
-* **Hành động:** Backend (Golang) sẽ đẩy thông báo qua Firebase Cloud Messaging (FCM) đến điện thoại của ba bạn.
-* **Nội dung:** "Vườn đang rất khô (Độ ẩm: 15%), ba có muốn tưới ngay không?".
-
----
-
-## 4. Thiết kế hệ thống (System Design)
-
-### Luồng xử lý dữ liệu:
-
-1. **M5Stack:** Đọc cảm biến $\rightarrow$ Đẩy lên MQTT Broker.
-2. **Golang Backend:** * Lắng nghe MQTT để cập nhật DB.
-* Chạy **Cron Job** (mỗi phút) để đối chiếu thời gian hiện tại với bảng `schedules`.
-* Nếu đến giờ, bắn lệnh `ON` xuống MQTT.
-
-
-3. **React PWA:** * Gọi API từ Echo để hiển thị dữ liệu.
-* Nhận thông báo Push từ FCM khi đất khô.
-
-
+- **Database:** PocketBase (embedded SQLite with REST API)
+- **Frontend:** React + Vite (Progressive Web App)
+- **Backend:** Go + Echo framework
+- **Messaging:** MQTT (Eclipse Mosquitto)
+- **Hardware:** M5Stack (ESP32-based)
 
 ---
 
-## 5. Kế hoạch đóng gói (All-in-One Box)
+## 1. Executive Summary
 
-Để hệ thống "cắm là chạy", bạn cần lắp ráp vào hộp nhựa chống nước theo sơ đồ sau:
+AIOT ESP32 Ecosystem is an open, modular IoT platform designed for agricultural and smart environment use cases. Built on the M5Stack hardware ecosystem, it gives farmers, hobbyists, and developers a plug-and-play foundation: a shared core infrastructure (connectivity, authentication, data pipeline, and web interface) that any sensor or actuator module can attach to without custom integration work.
 
-1. **Mặt nắp hộp:** Khoét lỗ gắn **M5Stack Core2** (Lộ màn hình để ba xem tại chỗ).
-2. **Bên trong:** Gắn nguồn tổ ong 12V và mạch hạ áp xuống 5V để nuôi M5Stack.
-3. **Cổng kết nối ngoài:**
-* 1 Dây nguồn AC 220V cắm ổ điện.
-* 1 Giắc DC ra Van điện từ.
-* 1 Cổng Grove nối dài ra cảm biến độ ẩm.
-
-
+Rather than building one product, this project builds a **platform** — one where new modules can be developed, published, and adopted by the community over time.
 
 ---
 
-## 6. Cấu trúc Database gợi ý (SQL)
+## 2. The Problem
 
-```sql
--- Lưu thông số cảm biến
-CREATE TABLE sensor_logs (
-    id SERIAL PRIMARY KEY,
-    moisture_level INTEGER,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+Current IoT solutions for agriculture and home automation suffer from three core issues:
 
--- Lưu lịch tưới
-CREATE TABLE watering_schedules (
-    id SERIAL PRIMARY KEY,
-    start_time TIME NOT NULL, -- Giờ tưới
-    duration_minutes INTEGER NOT NULL, -- Tưới bao lâu
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+- **Fragmentation** — each device requires its own app, account, and configuration.
+- **Rigidity** — systems are closed; adding a new sensor type means replacing the entire setup.
+- **Complexity** — most platforms assume a software background, locking out farmers and non-technical users.
 
+The AIOT ESP32 Ecosystem solves all three by providing a unified core that any module can connect to, with a single interface the user already knows.
+
+---
+
+## 3. Vision
+
+> Build a modular, extensible IoT ecosystem where the core infrastructure is built once, and any device — pump, sensor, plug, or beyond — simply plugs in.
+
+The end state is a platform where:
+
+- A farmer can add a new soil sensor and have it appear in their dashboard within minutes.
+- A developer can build and publish a new module (e.g. a CO₂ sensor) that any AIOT user can adopt.
+- The system grows with its users — from a single garden to a multi-zone farm — without re-architecting.
+
+---
+
+## 4. Core Architecture
+
+The ecosystem is structured around a **shared core** and **independent modules**. The core handles everything common; modules handle only what is unique to their function.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        AIOT Core                            │
+│                                                             │
+│   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌────────┐  │
+│   │  MQTT    │   │ Backend  │   │ Database │   │  PWA   │  │
+│   │  Broker  │◄──│ (Go)     │──►│(Postgres)│   │(React) │  │
+│   └────▲─────┘   └──────────┘   └──────────┘   └────────┘  │
+│        │                                                    │
+└────────┼────────────────────────────────────────────────────┘
+         │ MQTT Pub/Sub
+┌────────┴────────────────────────────────────────────────────┐
+│                     Module Layer                            │
+│                                                             │
+│   ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌──────┐ │
+│   │   Smart    │  │   Smart    │  │   Smart    │  │  +   │ │
+│   │  Pumping   │  │  Sensing   │  │   Plugs    │  │ More │ │
+│   └────────────┘  └────────────┘  └────────────┘  └──────┘ │
+└─────────────────────────────────────────────────────────────┘
+         │
+┌────────┴────────────────────────────────────────────────────┐
+│                   Hardware Layer (M5Stack)                  │
+│                                                             │
+│        M5Stack Core2 / AtomS3 / StickC / Grove Units        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Core Components:**
+
+| Layer         | Technology               | Responsibility                                         |
+| ------------- | ------------------------ | ------------------------------------------------------ |
+| Hardware      | M5Stack (ESP32-based)    | Sensor reading, actuator control, local display        |
+| Messaging     | MQTT (Mosquitto)         | Real-time pub/sub between devices and backend          |
+| Backend       | Golang (Echo framework)  | Business logic, scheduling, notifications, API         |
+| Database      | PocketBase               | Persistent storage for all modules (SQLite + REST API) |
+| Frontend      | React PWA (Vite)         | Unified dashboard, control interface, mobile support   |
+| Notifications | Firebase Cloud Messaging | Push alerts to mobile devices (future)                 |
+
+---
+
+## 5. Modules
+
+### 5.1 Smart Pumping
+
+Automated water pump management with scheduling, manual override, and water consumption tracking.
+
+**Key Capabilities:**
+
+- Define recurring watering schedules (time + duration per session)
+- Manual on/off control from the web app, synced in real time to the device
+- Track cumulative water consumption per session and over time
+- Dry-soil alerts: push notification when moisture is critically low and no schedule is active
+
+**Hardware:** M5Stack Core2 + Relay Unit + Solenoid Valve (12V) + Switching Power Supply
+
+---
+
+### 5.2 Smart Sensing
+
+A passive data-collection module that reads environmental conditions and feeds them into the shared data pipeline.
+
+**Key Capabilities:**
+
+- Continuous monitoring of soil moisture, temperature, humidity, and other Grove-compatible sensors
+- Time-series data stored for historical trend analysis
+- Threshold-based alerts configurable per sensor per user
+- Data visible across all modules that depend on environmental state (e.g. Smart Pumping uses moisture readings)
+
+**Hardware:** M5Stack Core2 / AtomS3 + Earth Unit + ENV Unit + any Grove sensor
+
+---
+
+### 5.3 Smart Plugs
+
+Remote-controlled power outlets with automation rules and energy consumption monitoring.
+
+**Key Capabilities:**
+
+- Remote on/off via web app or scheduled automation
+- Real-time energy consumption tracking (kWh per device)
+- Automation rules: trigger on time, sensor value, or manual input
+- Usage history and cost estimation per plug
+
+**Hardware:** M5Stack Core2 + Relay Unit + Current Sensor (e.g. ACS712)
+
+---
+
+### 5.4 Future Modules _(Planned)_
+
+The ecosystem is designed to grow. Potential future modules include:
+
+| Module                | Description                                                           |
+| --------------------- | --------------------------------------------------------------------- |
+| **Smart Lighting**    | Automated grow lights with schedule and lux-based control             |
+| **Smart Ventilation** | Fan/vent control based on temperature and humidity thresholds         |
+| **Smart Feeding**     | Automated nutrient dosing for hydroponic systems                      |
+| **Weather Station**   | Local micro-weather data (wind, rain, UV) feeding the shared pipeline |
+| **Camera Module**     | Visual monitoring with time-lapse capture                             |
+
+Any module that communicates over MQTT and follows the ecosystem's data schema can be integrated with zero changes to the core.
+
+---
+
+## 6. Design Principles
+
+**1. Plug-and-play extensibility**
+New hardware can be added by flashing firmware and connecting to the MQTT broker. No core code changes required.
+
+**2. Single source of truth**
+All state — device status, sensor readings, schedules, consumption logs — lives in one database. Every interface reads from the same data.
+
+**3. Offline resilience**
+M5Stack devices operate autonomously when internet connectivity is lost. Schedules cached on-device continue to execute; data is queued and synced when connection is restored.
+
+**4. Open by default**
+The platform is designed for the open source community. Module specifications, firmware templates, and API schemas are public so developers can build compatible modules independently.
+
+**5. User-first interface**
+The web app is designed for non-technical users (farmers, home gardeners). Controls are large, clear, and require no configuration knowledge to operate.
+
+---
+
+## 7. Hardware Ecosystem — M5Stack
+
+All hardware in this project is built on the M5Stack product line, which provides:
+
+- **ESP32-based controllers** with built-in Wi-Fi and Bluetooth
+- **Grove connector system** for tool-free sensor/actuator attachment
+- **Standardised form factors** for consistent enclosure design
+- **Active community** with open firmware support (UIFlow, Arduino, MicroPython)
+
+This choice ensures that users can source, replace, and expand hardware through a single vendor ecosystem with consistent physical and electrical interfaces.
+
+---
+
+## 8. Data Model Overview
+
+All modules share a common data layer. Each module extends the base schema with its own tables.
+
+**Core Tables (shared across all modules):**
+
+| Table        | Purpose                                        |
+| ------------ | ---------------------------------------------- |
+| `devices`    | Registry of all connected M5Stack units        |
+| `users`      | User accounts and notification preferences     |
+| `alerts`     | Configurable threshold rules per device/sensor |
+| `alert_logs` | History of triggered alerts and actions taken  |
+
+**Per-Module Tables (examples):**
+
+| Table                | Module        | Purpose                               |
+| -------------------- | ------------- | ------------------------------------- |
+| `sensor_logs`        | Smart Sensing | Time-series environmental readings    |
+| `watering_schedules` | Smart Pumping | Recurring schedule definitions        |
+| `watering_logs`      | Smart Pumping | Session history and water consumption |
+| `plug_states`        | Smart Plugs   | Current on/off state per plug         |
+| `energy_logs`        | Smart Plugs   | Power consumption time-series         |
+
+---
+
+## 9. Roadmap
+
+### Stage 1 — Foundation _(Current)_
+
+Establish the core platform and deliver the first two modules.
+
+| Milestone           | Deliverable                                                                         |
+| ------------------- | ----------------------------------------------------------------------------------- |
+| Core infrastructure | MQTT broker, Go backend, PostgreSQL schema, React PWA shell                         |
+| Smart Sensing (v1)  | Soil moisture + temperature readings, live dashboard, threshold alerts              |
+| Smart Pumping (v1)  | Schedule management, manual control, push notifications, water consumption tracking |
+| Hardware packaging  | All-in-one waterproof enclosure, plug-and-play installation                         |
+
+### Stage 2 — Expansion
+
+| Milestone            | Deliverable                                                                 |
+| -------------------- | --------------------------------------------------------------------------- |
+| Smart Plugs (v1)     | Remote control, energy monitoring, basic automation rules                   |
+| Multi-device support | Manage multiple M5Stack units from a single dashboard                       |
+| Module SDK           | Published firmware template and API spec for third-party module development |
+
+### Stage 3 — Platform
+
+| Milestone                 | Deliverable                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------ |
+| Community module registry | Developers can publish and share compatible modules                            |
+| Advanced automation       | Cross-module rules (e.g. "if moisture < 20% AND plug #2 is ON, activate pump") |
+| Analytics dashboard       | Historical trends, consumption reports, predictive insights                    |
+| Mobile app (native)       | iOS/Android companion app alongside the PWA                                    |
+
+---
+
+## 10. Target Users
+
+| User Type              | Profile                       | Primary Use Case                                                |
+| ---------------------- | ----------------------------- | --------------------------------------------------------------- |
+| **Home Gardener**      | Non-technical, mobile-first   | Automate a small home garden, get alerts when plants need water |
+| **Small-scale Farmer** | Practical, cost-conscious     | Monitor soil conditions across a plot, reduce water waste       |
+| **IoT Developer**      | Technical, community-oriented | Build and publish new modules on top of the ecosystem           |
+| **AgTech Enthusiast**  | Research-oriented             | Collect environmental data, experiment with automation rules    |
+
+---
+
+## 11. Open Source Strategy
+
+The AIOT ESP32 Ecosystem is developed as an open source project with the following components made publicly available:
+
+- **Firmware templates** for each M5Stack device type
+- **Backend API specification** (OpenAPI / Swagger)
+- **Module development guide** — how to build a compatible module
+- **Hardware schematics** for reference enclosure designs
+
+The goal is to build a community of contributors who extend the ecosystem with new modules, improving the platform for all users.
+
+---
+
+## 12. Repository Structure
+
+```
+AIOT_ESP32_Ecosystem/
+├── README.md                       # This file - project overview
+│
+├── core/                           # Core platform infrastructure
+│   ├── backend/                    # Go backend (Echo framework)
+│   │   ├── main.go                 # Application entry point
+│   │   ├── go.mod                  # Go dependencies
+│   │   ├── config/                 # Configuration management
+│   │   └── internal/               # Internal packages
+│   │       ├── api/                # REST API handlers
+│   │       ├── mqtt/               # MQTT client
+│   │       ├── pb/                 # PocketBase client
+│   │       ├── models/             # Data models
+│   │       ├── services/           # Business logic
+│   │       └── worker/             # Background workers
+│   │
+│   ├── frontend/                   # React PWA
+│   │   ├── src/                    # Source code
+│   │   ├── public/                 # Static assets
+│   │   ├── package.json            # Dependencies
+│   │   └── vite.config.ts          # Build configuration
+│   │
+│   └── infra/                      # Infrastructure configuration
+│       ├── docker/                 # Docker Compose setup
+│       │   └── docker-compose.yml  # Services definition
+│       ├── mqtt/                   # MQTT broker config
+│       │   └── mosquitto.conf      # Mosquitto configuration
+│       ├── pocketbase/             # PocketBase database
+│       │   ├── pb_data/            # Database files
+│       │   └── pb_migrations/      # Schema migrations
+│       └── migrations/             # Additional migrations
+│
+├── modules/                        # IoT modules (plug-and-play)
+│   ├── smart-pumping/              # Automated watering system
+│   │   ├── README.md               # Module documentation
+│   │   ├── firmware/               # M5Stack firmware
+│   │   ├── backend/                # Module-specific backend (if needed)
+│   │   └── schema/                 # Database schema
+│   │
+│   ├── smart-sensing/              # Environmental monitoring
+│   │   ├── README.md
+│   │   ├── firmware/
+│   │   └── ...
+│   │
+│   ├── smart-plugs/                # Remote power control
+│   │   ├── README.md
+│   │   ├── firmware/
+│   │   └── ...
+│   │
+│   └── _template/                  # Starter template for new modules
+│       └── README.md               # Module development guide
+│
+├── hardware/                       # Hardware documentation
+│   ├── README.md                   # Hardware overview
+│   ├── schematics/                 # Wiring diagrams per module
+│   │   ├── smart-pumping/
+│   │   ├── smart-sensing/
+│   │   ├── smart-plugs/
+│   │   └── common/                 # Shared components
+│   │
+│   └── enclosures/                 # 3D print files / assembly guides
+│       ├── smart-pumping/
+│       ├── smart-sensing/
+│       ├── smart-plugs/
+│       └── universal/              # Generic enclosures
+│
+└── docs/                           # Documentation
+    ├── architecture.md             # System architecture
+    ├── api-reference.md            # REST API documentation
+    ├── getting-started.md          # Quick start guide
+    └── projects-story/             # Project evolution
+        ├── v1.0.0.md               # Stage 1 vision (irrigation)
+        └── v1.0.1.md               # Future stages
 ```
 
 ---
 
-## 7. Các bước triển khai tiếp theo
-
-1. **Mua linh kiện:** Ưu tiên mua M5Stack Core2 và Earth Unit trước để test code.
-2. **Backend:** Viết API quản lý CRUD cho bảng `watering_schedules`.
-3. **Firmware:** Code cho M5Stack để kết nối Wi-Fi và Pub/Sub qua MQTT.
-4. **Frontend:** Build giao diện React với `vite-plugin-pwa` để ba bạn cài lên điện thoại.
+_AIOT ESP32 Ecosystem — Build the core once. Plug in everything else._

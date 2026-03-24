@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # MQTT Broker - Eclipse Mosquitto
+  mqtt:
+    image: eclipse-mosquitto:2.0
+    container_name: aiot-mqtt
+    restart: unless-stopped
+    ports:
+      - '1883:1883' # MQTT
+      - '9001:9001' # MQTT over WebSocket
+    volumes:
+      - ../mqtt/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mqtt-data:/mosquitto/data
+      - mqtt-logs:/mosquitto/log
+    networks:
+      - aiot-network
+
+  # PocketBase - Embedded Database & Auth
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:latest
+    container_name: aiot-pocketbase
+    restart: unless-stopped
+    ports:
+      - '8090:8090'
+    volumes:
+      - ../pocketbase/pb_data:/pb_data
+      - ../pocketbase/pb_migrations:/pb_migrations
+    networks:
+      - aiot-network
+    command: serve --http=0.0.0.0:8090
+
+volumes:
+  mqtt-data:
+  mqtt-logs:
+
+networks:
+  aiot-network:
+    driver: bridge
