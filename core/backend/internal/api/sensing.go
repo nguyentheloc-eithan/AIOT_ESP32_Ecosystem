@@ -9,7 +9,7 @@ import (
 
 // GetTelemetry returns telemetry data for a device
 func GetTelemetry(pbClient *pb.Client) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		deviceID := c.Param("deviceId")
 		// TODO: Fetch telemetry from PocketBase with pagination
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -22,7 +22,7 @@ func GetTelemetry(pbClient *pb.Client) echo.HandlerFunc {
 
 // GetLatestTelemetry returns the latest telemetry reading
 func GetLatestTelemetry(pbClient *pb.Client) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		deviceID := c.Param("deviceId")
 		// TODO: Fetch latest telemetry from PocketBase
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -35,7 +35,7 @@ func GetLatestTelemetry(pbClient *pb.Client) echo.HandlerFunc {
 
 // CreateTelemetry creates a new telemetry entry
 func CreateTelemetry(pbClient *pb.Client) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		deviceID := c.Param("deviceId")
 		
 		var req struct {

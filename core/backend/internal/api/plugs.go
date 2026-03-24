@@ -11,7 +11,7 @@ import (
 
 // TurnPlugOn turns on a smart plug
 func TurnPlugOn(pbClient *pb.Client, mqttClient *mqtt.Client) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		deviceID := c.Param("deviceId")
 
 		// Publish MQTT command to device
@@ -39,7 +39,7 @@ func TurnPlugOn(pbClient *pb.Client, mqttClient *mqtt.Client) echo.HandlerFunc {
 
 // TurnPlugOff turns off a smart plug
 func TurnPlugOff(pbClient *pb.Client, mqttClient *mqtt.Client) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		deviceID := c.Param("deviceId")
 
 		// Publish MQTT command to device
@@ -67,7 +67,7 @@ func TurnPlugOff(pbClient *pb.Client, mqttClient *mqtt.Client) echo.HandlerFunc 
 
 // GetPlugStatus returns the current status of a plug
 func GetPlugStatus(pbClient *pb.Client) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		deviceID := c.Param("deviceId")
 		// TODO: Fetch plug status from PocketBase
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -80,7 +80,7 @@ func GetPlugStatus(pbClient *pb.Client) echo.HandlerFunc {
 
 // GetEnergyUsage returns energy usage data for a plug
 func GetEnergyUsage(pbClient *pb.Client) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		deviceID := c.Param("deviceId")
 		// TODO: Fetch energy usage from PocketBase
 		return c.JSON(http.StatusOK, map[string]interface{}{

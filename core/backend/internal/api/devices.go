@@ -9,7 +9,7 @@ import (
 
 // ListDevices returns all devices
 func ListDevices(pbClient *pb.Client) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		// TODO: Implement device listing from PocketBase
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"devices": []map[string]interface{}{},
@@ -20,7 +20,7 @@ func ListDevices(pbClient *pb.Client) echo.HandlerFunc {
 
 // GetDevice returns a specific device
 func GetDevice(pbClient *pb.Client) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		deviceID := c.Param("id")
 		// TODO: Implement device fetch from PocketBase
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -32,7 +32,7 @@ func GetDevice(pbClient *pb.Client) echo.HandlerFunc {
 
 // CreateDevice creates a new device
 func CreateDevice(pbClient *pb.Client) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		// TODO: Implement device creation in PocketBase
 		return c.JSON(http.StatusCreated, map[string]interface{}{
 			"message": "Device creation not yet implemented",
@@ -42,7 +42,7 @@ func CreateDevice(pbClient *pb.Client) echo.HandlerFunc {
 
 // UpdateDevice updates a device
 func UpdateDevice(pbClient *pb.Client) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		deviceID := c.Param("id")
 		// TODO: Implement device update in PocketBase
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -54,7 +54,7 @@ func UpdateDevice(pbClient *pb.Client) echo.HandlerFunc {
 
 // DeleteDevice deletes a device
 func DeleteDevice(pbClient *pb.Client) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		deviceID := c.Param("id")
 		// TODO: Implement device deletion from PocketBase
 		return c.JSON(http.StatusOK, map[string]interface{}{

@@ -3,10 +3,13 @@ package main
 import (
 	"log"
 	"os"
+	"os/signal"
 	"smart_garden_server/config"
 	"smart_garden_server/internal/api"
 	"smart_garden_server/internal/mqtt"
 	"smart_garden_server/internal/pb"
+	"smart_garden_server/internal/taskhandler"
+	"syscall"
 
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
@@ -18,13 +21,13 @@ func main() {
 
 	// Initialize Echo
 	e := echo.New()
-	e.HidePort = false
-	e.HideBanner = false
 
 	// Middleware
-	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.Use(middleware.CORS())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "PATCH"},
+	}))
 
 	// Initialize PocketBase client
 	pbClient := pb.NewClient(cfg.PocketBaseURL)
@@ -44,8 +47,17 @@ func main() {
 	// Initialize API routes
 	api.RegisterRoutes(e, pbClient, mqttClient)
 
+	// Initialize and start task handler
+	taskHandler := taskhandler.NewTaskHandler(pbClient, mqttClient)
+	go taskHandler.Start()
+	log.Println("✅ Task Handler started")
+
+	// Graceful shutdown handler
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+
 	// Health check
-	e.GET("/health", func(c echo.Context) error {
+	e.GET("/health", func(c *echo.Context) error {
 		health := map[string]interface{}{
 			"status":     "healthy",
 			"version":    "1.0.0",
@@ -70,8 +82,21 @@ func main() {
 	log.Println("🚀 AIOT ESP32 Ecosystem Backend Starting...")
 	log.Printf("📡 Server listening on :%s", port)
 	log.Printf("🌍 Environment: %s", cfg.Env)
-	
-	if err := e.Start(":" + port); err != nil {
-		log.Fatal(err)
-	}
+
+	// Start server in a goroutine
+	go func() {
+		if err := e.Start(":" + port); err != nil {
+			log.Printf("Server error: %v", err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown
+	<-quit
+	log.Println("\n👋 Shutting down gracefully...")
+
+	// Stop task handler
+	taskHandler.Stop()
+	log.Println("✅ Task Handler stopped")
+
+	log.Println("✅ Server stopped")
 }

@@ -11,7 +11,7 @@ import (
 
 // ActivatePump activates the pump for a device
 func ActivatePump(pbClient *pb.Client, mqttClient *mqtt.Client) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		deviceID := c.Param("deviceId")
 
 		// Parse request body
@@ -51,7 +51,7 @@ func ActivatePump(pbClient *pb.Client, mqttClient *mqtt.Client) echo.HandlerFunc
 
 // DeactivatePump deactivates the pump for a device
 func DeactivatePump(pbClient *pb.Client, mqttClient *mqtt.Client) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		deviceID := c.Param("deviceId")
 
 		// Publish MQTT command to device
@@ -79,7 +79,7 @@ func DeactivatePump(pbClient *pb.Client, mqttClient *mqtt.Client) echo.HandlerFu
 
 // GetPumpSchedules returns all schedules for a device
 func GetPumpSchedules(pbClient *pb.Client) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		deviceID := c.Param("deviceId")
 		// TODO: Fetch schedules from PocketBase
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -92,7 +92,7 @@ func GetPumpSchedules(pbClient *pb.Client) echo.HandlerFunc {
 
 // CreatePumpSchedule creates a new schedule
 func CreatePumpSchedule(pbClient *pb.Client) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		deviceID := c.Param("deviceId")
 		// TODO: Create schedule in PocketBase
 		return c.JSON(http.StatusCreated, map[string]interface{}{
@@ -104,7 +104,7 @@ func CreatePumpSchedule(pbClient *pb.Client) echo.HandlerFunc {
 
 // UpdatePumpSchedule updates a schedule
 func UpdatePumpSchedule(pbClient *pb.Client) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		scheduleID := c.Param("id")
 		// TODO: Update schedule in PocketBase
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -116,7 +116,7 @@ func UpdatePumpSchedule(pbClient *pb.Client) echo.HandlerFunc {
 
 // DeletePumpSchedule deletes a schedule
 func DeletePumpSchedule(pbClient *pb.Client) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		scheduleID := c.Param("id")
 		// TODO: Delete schedule from PocketBase
 		return c.JSON(http.StatusOK, map[string]interface{}{
