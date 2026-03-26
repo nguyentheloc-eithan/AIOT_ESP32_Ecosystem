@@ -1,96 +1,211 @@
-# AIOT ESP32 Ecosystem - Frontend
+# Smart Garden Frontend
 
-React-based web dashboard for managing and monitoring the AIOT ESP32 Ecosystem, with a focus on the Smart Pumping module.
+A modular, plugin-based frontend application for managing smart garden devices and automation.
+
+## 🎯 Features
+
+- **Modular Plugin Architecture**: Each module (pumping, sensing, plugs) is an independent plugin
+- **Backend Agnostic**: Swap backends without changing plugin code (PocketBase, REST API, GraphQL, etc.)
+- **Type-Safe**: Full TypeScript support throughout
+- **Real-time Updates**: Built-in subscription support for live data
+- **Dashboard**: Overview of all modules in one place
+- **Extensible**: Easy to add new plugins and features
+
+## 🏗️ Architecture
+
+### Plugin System
+
+The frontend uses a sophisticated plugin system that allows modules to be:
+
+- **Independent**: Each plugin is self-contained
+- **Hot-swappable**: Enable/disable plugins without rebuilding
+- **Reusable**: Share plugins across projects
+- **Type-safe**: Full TypeScript interfaces
+
+### Data Provider Abstraction
+
+All backend communication goes through a unified `IDataProvider` interface:
+
+- Switch backends without changing plugin code
+- Built-in providers for PocketBase and REST APIs
+- Easy to create custom providers for any backend
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Node.js 18+ and npm
-- PocketBase running on `http://localhost:8090`
-- Backend server running on `http://localhost:8080` (optional)
+- PocketBase server running (or any compatible backend)
 
 ### Installation
 
-1. **Install dependencies**
+```bash
+# Install dependencies
+npm install
 
-   ```bash
-   cd core/frontend
-   npm install
-   ```
+# Set up environment variables (optional)
+cp .env.example .env
+# Edit .env with your settings
+```
 
-2. **Configure environment**
+### Environment Variables
 
-   ```bash
-   cp .env.example .env
-   ```
+Create a `.env` file:
 
-   Edit `.env`:
+```env
+VITE_POCKETBASE_URL=http://localhost:8090
+```
 
-   ```env
-   VITE_POCKETBASE_URL=http://localhost:8090
-   VITE_BACKEND_URL=http://localhost:8080
-   ```
+### Development
 
-3. **Start development server**
-   ```bash
-   npm run dev
-   ```
+```bash
+# Start development server
+npm run dev
 
-The app will be available at `http://localhost:5173`
+# Build for production
+npm run build
 
-## 📦 Tech Stack
+# Preview production build
+npm run preview
 
-- **React 19** - UI framework
-- **TypeScript** - Type safety
-- **Vite 8** - Build tool and dev server
-- **PocketBase SDK** - Real-time database client
-- **Inline Styles** - Simple styling (can be replaced with Tailwind/MUI later)
+# Lint code
+npm run lint
+```
 
-## 🏗️ Project Structure
+## 📁 Project Structure
 
 ```
 src/
-├── pages/
-│   └── SmartPumping.tsx      # Smart Pumping dashboard page
-├── components/
-│   ├── TaskCard.tsx           # Task display component
-│   └── TaskForm.tsx           # Task creation form
-├── lib/
-│   └── pocketbase.ts          # PocketBase client setup
-├── App.tsx                    # Main app component
-└── main.tsx                   # Entry point
+├── core/                          # Core plugin system
+│   ├── types/
+│   │   ├── plugin.ts             # Plugin interfaces
+│   │   └── data-provider.ts      # Data provider interfaces
+│   ├── providers/
+│   │   ├── pocketbase-provider.ts # PocketBase implementation
+│   │   └── rest-api-provider.ts   # REST API implementation
+│   ├── plugin-registry.ts         # Plugin management
+│   └── index.ts
+├── plugins/                       # Plugin modules
+│   ├── smart-pumping/            # Irrigation control
+│   ├── smart-sensing/            # Sensor monitoring
+│   ├── smart-plugs/              # Power management
+│   └── index.ts
+├── components/                    # Shared components
+│   ├── PluginContainer.tsx       # Plugin wrapper
+│   ├── Dashboard.tsx             # Dashboard view
+│   ├── TaskCard.tsx              # Task display
+│   └── TaskForm.tsx              # Task creation
+├── lib/                          # Utilities
+│   └── pocketbase.ts             # PocketBase client
+├── App.tsx                       # Main application
+└── main.tsx                      # Entry point
 ```
 
-## 💧 Smart Pumping Dashboard
+## 🔌 Plugin System
 
-The Smart Pumping dashboard provides:
+Each module is an independent plugin. To create a new plugin:
 
-- **Real-time Task Monitoring** - See task status updates instantly
-- **Task Creation** - Create watering tasks with custom parameters
-- **Task Management** - View, filter, and delete tasks
-- **Statistics** - See counts by status (pending, processing, done, failed)
-- **Live Updates** - PocketBase real-time subscriptions for instant updates
+```typescript
+// src/plugins/my-plugin/index.tsx
+import { IPlugin, PluginContext } from '../../core/types/plugin';
 
-### Task Types
+const MyPluginComponent: React.FC<{ context: PluginContext }> = ({ context }) => {
+  const { dataProvider } = context;
 
-1. **WATER_PLANT** - Water plants for a specific duration
-2. **MANUAL_PUMP_ON** - Manually turn pump on
-3. **MANUAL_PUMP_OFF** - Manually turn pump off
-4. **SCHEDULE_WATERING** - Create recurring watering schedule
+  // Use dataProvider for all backend operations
+  const fetchData = async () => {
+    const items = await dataProvider.getList('my_collection', {
+      page: 1,
+      perPage: 50,
+    });
+  };
 
-### Task Flow
+  return <div><h1>My Plugin</h1></div>;
+};
 
+export const MyPlugin: IPlugin = {
+  metadata: {
+    id: 'my-plugin',
+    name: 'My Plugin',
+    version: '1.0.0',
+    description: 'My custom plugin',
+  },
+  config: { enabled: true, route: '/my-plugin' },
+  component: MyPluginComponent,
+};
 ```
-Frontend → PocketBase (tasks collection) → Backend Task Handler → MQTT → M5Stack Device
+
+Register in `App.tsx`:
+
+```typescript
+pluginRegistry.register(MyPlugin);
 ```
 
-1. User creates task in the dashboard
-2. Task is saved to PocketBase with status `pending`
-3. Backend task handler polls PocketBase for pending tasks
-4. Backend processes task and publishes MQTT command
-5. M5Stack device receives command and executes action
-6. Status updates are reflected in real-time in the dashboard
+## 🎨 Available Plugins
+
+### Smart Pumping
+
+- Manage watering tasks
+- Schedule irrigation
+- Monitor pump status
+- Real-time task updates
+
+### Smart Sensing
+
+- View sensor data
+- Monitor environmental conditions
+- Track sensor status
+
+### Smart Plugs
+
+- Control power outlets
+- Monitor power consumption
+- Remote device control
+
+## 🔄 Data Provider Interface
+
+All plugins interact with backends through the `IDataProvider` interface:
+
+```typescript
+interface IDataProvider {
+  getOne<T>(collection: string, id: string): Promise<T>;
+  getList<T>(
+    collection: string,
+    options?: QueryOptions,
+  ): Promise<PaginatedResponse<T>>;
+  create<T>(collection: string, data: Partial<T>): Promise<T>;
+  update<T>(collection: string, id: string, data: Partial<T>): Promise<T>;
+  delete(collection: string, id: string): Promise<boolean>;
+  subscribe?<T>(
+    collection: string,
+    callback: SubscriptionCallback<T>,
+  ): Promise<UnsubscribeFn>;
+}
+```
+
+### Switching Backends
+
+```typescript
+// PocketBase (default)
+const dataProvider = new PocketBaseProvider('http://localhost:8090');
+
+// REST API
+const dataProvider = new RestApiProvider({
+  baseUrl: 'https://api.example.com',
+  headers: { Authorization: 'Bearer token' },
+});
+
+// Custom provider
+class MyProvider implements IDataProvider {
+  /* ... */
+}
+const dataProvider = new MyProvider();
+```
+
+## 📚 Documentation
+
+- [Plugin System Guide](./PLUGIN_SYSTEM.md) - Detailed plugin system documentation
+- [Data Provider Guide](./DATA_PROVIDER_GUIDE.md) - Creating custom data providers
 
 ## 🔧 Development
 
@@ -103,23 +218,16 @@ npm run preview  # Preview production build
 npm run lint     # Run ESLint
 ```
 
-### Adding New Features
-
-1. **New Component**: Create in `src/components/`
-2. **New Page**: Create in `src/pages/`
-3. **New Data Type**: Add to `src/lib/pocketbase.ts`
-
 ### Real-time Updates
 
-The dashboard uses PocketBase real-time subscriptions:
+The system uses real-time subscriptions through the data provider:
 
 ```typescript
-// Subscribe to tasks collection
-pb.collection('tasks').subscribe<Task>('*', (e) => {
-  if (e.action === 'create') {
-    // Handle new task
-  } else if (e.action === 'update') {
-    // Handle task update
+const unsubscribe = await dataProvider.subscribe('tasks', (event) => {
+  if (event.action === 'create') {
+    // Handle new record
+  } else if (event.action === 'update') {
+    // Handle update
   }
 });
 
